@@ -5,11 +5,17 @@
 //
 // Simon Walker
 // Created September 2024, initial build
-////////////////////////////////////////////////////////////
+//
+// R1.0 - Initial
+// R1.1 - Added error checking and correction code
+//      - Added but removed interrupt code - appears to stay
+//      -  in ISR like the interrupt is not being cleared
+//      -  ISR not super practical in this case, so check later...
+//////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+//#include <stdlib.h>
+//#include <math.h>
 
 // not at all available on non RNG/AES devices (so G031 series is excluded)
 #include "stm32g041xx.h"
@@ -31,7 +37,10 @@ void _RNG_Init16 (void)
   RCC->CCIPR |=  0b00000100000000000000000000000000; // late stage, div by 1 (hsi already /8)
 
   // clock error detection turned on
-  //RNG->CR |= RNG_CR_CED_Msk;
+  RNG->CR &= ~RNG_CR_CED_Msk;
+
+  // turn on RNG interrupts
+  //RNG->CR |= RNG_CR_IE_Msk;
 
   // turn on RNG
   RNG->CR |= RNG_CR_RNGEN;  
@@ -52,7 +61,10 @@ void _RNG_Init64 (void)
   RCC->CCIPR |=  0b00111000000000000000000000000000; // late stage, div by 8 (and use SYSCLK)
 
   // clock error detection turned on
-  //RNG->CR |= RNG_CR_CED_Msk;
+  RNG->CR &= ~RNG_CR_CED_Msk;
+
+  // turn on RNG interrupts
+  //RNG->CR |= RNG_CR_IE_Msk;
 
   // turn on RNG
   RNG->CR |= RNG_CR_RNGEN;  
@@ -60,11 +72,33 @@ void _RNG_Init64 (void)
 
 int _RNG_GetRND (unsigned int * pData)
 {
-  // any errors?
-  if (RNG->SR & RNG_SR_SEIS || RNG->SR & RNG_SR_CEIS)
+  if (RNG->SR & RNG_SR_SEIS_Msk)
   {
-    // error!
-    return -1;
+    // seed (generation) error
+    // write SEIS as zero to clear the flag (19.3.7)
+    RNG->SR = ~RNG_SR_SEIS_Msk;
+
+    // discard all pending data elements in the FIFO and conditioner
+    for (int i = 0; i < 12; ++i)
+      uint32_t iDiscard = RNG->DR;
+    
+    printf ("RNG:: seed error detected");
+
+    // validate SEIS is still cleared (no talk of SECS?)
+    return -3;    
+  }
+
+  if (RNG->SR & RNG_SR_CEIS_Msk)
+  {
+    // clocking issue, should not happen, and should recover
+    // clear the clocking issue flag, but make a note of it in debug configs
+    
+    // clear CEIS
+    RNG->SR = ~RNG_SR_CEIS_Msk;
+
+    printf ("RNG:: clock error detected");
+
+    return -2;
   }
 
   // is a random number available?
@@ -75,7 +109,7 @@ int _RNG_GetRND (unsigned int * pData)
   }
 
   // a number isn't ready
-  return -2;
+  return -1;
 }
 
 double _RNG_GetRNDD (void)
@@ -86,15 +120,8 @@ double _RNG_GetRNDD (void)
   do
   {
     iResult = _RNG_GetRND (&iVal);
-
-    // error from RNG
-    if (iResult == -1)
-      return NAN;
-
-    if (!iResult)
-      break;
   }
-  while (iResult == -2); // not ready, just wait longer
+  while (iResult); // not ready or recovering from error, just wait longer
   
   // got one, not in error conditions, so return it as a double
   return ((double)iVal / ((int64_t)UINT32_MAX + 1));
