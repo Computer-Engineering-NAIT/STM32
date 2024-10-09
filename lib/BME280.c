@@ -42,7 +42,7 @@ struct BME280_CompensationTable
   char dig_H6;
 } BME280_CompTable;
 
-// used in compensation, needs to be populated from 
+// used in compensation, needs to be populated from BME280_compensate_T_int32
 int32_t BME280_t_fine;
 
 // private helpers
@@ -109,7 +109,6 @@ int BME280_SW_RESET (void)
 
   return 0;
 }
-
 
 int BME280_SetOversampling (BME280_Oversampling hum, BME280_Oversampling pres, BME280_Oversampling temp, BME280_SensorMode mode)
 {
