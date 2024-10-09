@@ -5,7 +5,8 @@
 // Simon Walker
 // Created September 2024, initial build
 // 
-// Version 1.0
+// Version 1.0 - Initial Build
+// Version 1.1 - Fix for Read function - corrected order of Start/Autoend
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -72,6 +73,8 @@ int _I2C1_IsBusy (void)
 
 int _I2C1_StartRead (unsigned char address, unsigned char bytecount, unsigned char * pData, _I2C_AutoEndOption endoption)
 {
+  // can't wait for bus to be busy in the case of a repeated start condition
+
   // 7-bit address of target is written to SADD 7:1 (0, 8, 9 ignored)
   I2C1->CR2 &= ~I2C_CR2_SADD_Msk;
   I2C1->CR2 |=  (unsigned int)address << 1; // target address, shifted up one position
@@ -83,12 +86,20 @@ int _I2C1_StartRead (unsigned char address, unsigned char bytecount, unsigned ch
   // set direction of transfer
   I2C1->CR2 |= I2C_CR2_RD_WRN; // 1 == want to read
 
-  // set the AUTOEND option
-  I2C1->CR2 &= ~I2C_CR2_AUTOEND_Msk;
-  I2C1->CR2 |= (((unsigned int)endoption) << I2C_CR2_AUTOEND_Pos);
-
   // issue the start condition
   I2C1->CR2 |= I2C_CR2_START; // start the communication...
+
+  // autoend moved to after start condition issued,
+  //  as in a repeated start, this would terminate the transaction
+  //  if hardware end was desired in the 2nd half of the transaction
+  // so, assume for a restart, the transaction was started as software end
+  //  the the TC flag will be set, and the clock is being stretched
+  // if we flip to hardware, we want the NBYTES value to be non-zero
+
+  // set the AUTOEND option
+  I2C1->CR2 &= ~I2C_CR2_AUTOEND_Msk;
+  // this kills an ongoing transaction at this point***
+  I2C1->CR2 |= (((unsigned int)endoption) << I2C_CR2_AUTOEND_Pos);
 
   // no need to wait for address transmission, unless there is a problem  
   //  as the next event if all goes well is a byte from the target device
@@ -123,7 +134,9 @@ int _I2C1_StartRead (unsigned char address, unsigned char bytecount, unsigned ch
 int _I2C1_StartWrite (unsigned char address, unsigned char bytecount, unsigned char * pData, _I2C_AutoEndOption endoption)
 {  
   // upon entry, if required, wait for bus to be busy or not
-
+  // this assumes no repreated start in the write case
+  while (_I2C1_IsBusy())
+  {;;;}
 
   // 7-bit address of target is written to SADD 7:1 (0, 8, 9 ignored)
   I2C1->CR2 &= ~I2C_CR2_SADD_Msk;
@@ -161,19 +174,26 @@ int _I2C1_StartWrite (unsigned char address, unsigned char bytecount, unsigned c
 
     // wait for byte to clear
     while (!(I2C1->ISR & I2C_ISR_TXIS))
-    {
-    }
+    { ;;; }
   }
 
-  // final byte is controlled by TC flag if software end
+  // final (or only) byte is controlled by TC flag if software end
   I2C1->TXDR = pData [bytecount - 1];
 
   if (endoption == _I2C_AutoEnd_Software)
   {
-    // don't sent stop condition, but wait for TC flag
+    // don't send stop condition, but wait for TC flag
+    // this is more for followup transactions, as a restart can't
+    //  use busy to tell if a transaction is ongoing
+    // we could do TC polling in the read function, if we expect
+    //  that we are under a restart condition
+    // it's slower here, cause we are waiting for the transmission
+    //  to complete, but it makes the read easier if we enter
+    //  always knowning the transaction is ready to continue
+    // maybe a future update
+    
     while (!(I2C1->ISR & I2C_ISR_TC))
-    {
-    }  
+    { ;;; }  
 
     // we're done here, leave transaction active and return
     return 0;

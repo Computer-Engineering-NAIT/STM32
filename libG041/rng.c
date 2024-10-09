@@ -80,7 +80,9 @@ int _RNG_GetRND (unsigned int * pData)
 
     // discard all pending data elements in the FIFO and conditioner
     for (int i = 0; i < 12; ++i)
+    {
       uint32_t iDiscard = RNG->DR;
+    }
     
     printf ("RNG:: seed error detected");
 
