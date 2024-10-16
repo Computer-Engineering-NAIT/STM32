@@ -7,6 +7,29 @@
 //Software by 2020 Bosch Sensortec GmbH. used
 //Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
 
+///////////////////////////////////////////////////////////
+// BME280 Sample Use
+//if (BME280_Init())
+//{
+//  _USART2_TxStringXY(1, 18, "BME280 Init Failure...");
+//}
+//else
+//{
+//  char buff [80];
+//  uint32_t temp = BME280_compensate_T_int32(BME280_raw_T());    
+//  (void)sprintf (buff, "BME280 Temp : %0.2fC     ", temp / 100.0f);
+//  _USART2_TxStringXY(1, 19, buff);
+
+//  uint32_t hum = BME280_compensate_H_int64(BME280_raw_H());
+//  (void)sprintf (buff, "BME280 Humidity : %0.2f%%     ", hum / 1024.0f);
+//  _USART2_TxStringXY(1, 20, buff);
+
+//  uint32_t press = BME280_compensate_P_int32(BME280_raw_P());
+//  (void)sprintf (buff, "BME280 Pressure : %0.2fhPa     ", press / 100.0f + 78); // compensation (78) for 670m altitude
+//  _USART2_TxStringXY(1, 21, buff);
+//}
+///////////////////////////////////////////////////////////
+
 #include "stdint.h"
 
 #ifndef BME280ADDR

@@ -9,6 +9,26 @@
 // 
 ///////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////
+// VEML7700 Sample Use
+//if (VEML7700_Init())
+//{
+//  _USART2_TxStringXY(1, 15, "VEML7700 Init Failure...");
+//}
+
+//////////////////////////////////////////////////////////    
+// show ambient light level (debug only, VEML7700)
+//{
+  
+//  uint16_t ambient;
+//  if (!VEML7700_ReadAmbient(&ambient))
+//  {
+//    char buff[80];
+//    (void)sprintf (buff, "ALS: %4.4X", ambient);
+//    _USART2_TxStringXY(40, 3, buff);
+//  }
+//}
+
 #include "stdint.h"
 
 #define VEML7700_ADDR 0x10

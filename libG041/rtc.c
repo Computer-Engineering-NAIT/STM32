@@ -6,20 +6,123 @@
 // Simon Walker
 // Created September 2024, initial build
 //
-// Version 1.0
+// Version 1.0 - Initial
+// Version 1.1 - OCTOBER 11 2024 - Altered init to use a time string 
+//  same format as __TIMESTAMP__, to make cold boots easier
 // 
 ///////////////////////////////////////////////////////////////////////
 
 //#include <stdio.h>
 //#include <stdlib.h>
+#include <string.h>
 
 // should work on other variants
 #include "stm32g041xx.h"
 
 #include "rtc.h"
 
-_RTC_INIT_RESULT _RTC_Init (_RTC_STime settime)
+// local helper methods
+// Format: "Fri Oct 11 08:03:00 2024"
+_RTC_STime _RTC_TimeStringToSTime (char * tbuff)
 {
+  _RTC_STime curtime;
+
+  // year
+  curtime._RTC_Time_YT = tbuff[22] - '0';
+  curtime._RTC_Time_YU = tbuff[23] - '0';
+
+  // day of week 1Mo, 2Tu, 3We, 4Th, 5Fr, 6Sa, 7Su
+  switch (tbuff[0])
+  {
+    case 'M':
+      curtime._RTC_Time_WDU = 1;
+      break;
+    case 'T':
+      curtime._RTC_Time_WDU = tbuff[1] == 'u' ? 2 : 4;
+      break;
+    case 'W':
+      curtime._RTC_Time_WDU = 3;
+      break;
+    case 'F':
+      curtime._RTC_Time_WDU = 5;
+      break;
+    case 'S':
+      curtime._RTC_Time_WDU = tbuff[1] == 'a' ? 6 : 7;
+      break;
+  }    
+  
+  // month
+  curtime._RTC_Time_MT = 0;
+  if (strncmp ("Jan", tbuff + 4, 3) == 0)
+    curtime._RTC_Time_MU = 1;
+  if (strncmp ("Feb", tbuff + 4, 3) == 0)
+    curtime._RTC_Time_MU = 2;
+  if (strncmp ("Mar", tbuff + 4, 3) == 0)
+    curtime._RTC_Time_MU = 3;
+  if (strncmp ("Apr", tbuff + 4, 3) == 0)
+    curtime._RTC_Time_MU = 4;
+  if (strncmp ("May", tbuff + 4, 3) == 0)
+    curtime._RTC_Time_MU = 5;
+  if (strncmp ("Jun", tbuff + 4, 3) == 0)
+    curtime._RTC_Time_MU = 6;
+  if (strncmp ("Jul", tbuff + 4, 3) == 0)
+    curtime._RTC_Time_MU = 7;
+  if (strncmp ("Aug", tbuff + 4, 3) == 0)
+    curtime._RTC_Time_MU = 8;
+  if (strncmp ("Sep", tbuff + 4, 3) == 0)
+    curtime._RTC_Time_MU = 9;
+  if (strncmp ("Oct", tbuff + 4, 3) == 0)
+  {
+    curtime._RTC_Time_MT = 1;
+    curtime._RTC_Time_MU = 0;
+  }
+  if (strncmp ("Nov", tbuff + 4, 3) == 0)
+  {
+    curtime._RTC_Time_MT = 1;
+    curtime._RTC_Time_MU = 1;
+  }
+  if (strncmp ("Dec", tbuff + 4, 3) == 0)
+  {
+    curtime._RTC_Time_MT = 1;
+    curtime._RTC_Time_MU = 2;
+  }
+
+  // Format: Fri Oct 11 08:03:00 2024
+  //         012345678901234567890123
+
+  // day
+  curtime._RTC_Time_DT = tbuff[8] - '0';
+  curtime._RTC_Time_DU = tbuff[9] - '0';
+
+  curtime._RTC_Time_PM = 0;           //24 hour
+
+  // hour
+  curtime._RTC_Time_HT = tbuff[11] - '0';
+  curtime._RTC_Time_HU = tbuff[12] - '0';
+
+  // minute
+  curtime._RTC_Time_MNT = tbuff[14] - '0';
+  curtime._RTC_Time_MNU = tbuff[15] - '0';
+
+  // second
+  curtime._RTC_Time_ST = tbuff[17] - '0';
+  curtime._RTC_Time_SU = tbuff[18] - '0';
+
+  curtime._RTC_Time_SSR = 0; // not currently used
+
+  return curtime;
+}
+///////////////////////
+
+// cold boot will use string in following format to init the RTC
+//  in warm boot, this string will not be used, but *must* be present
+// Format: Fri Oct 11 08:03:00 2024
+_RTC_INIT_RESULT _RTC_Init (char * TimeStringInit)
+{
+  // convert the time string into a _RTC_STime instance
+  _RTC_STime settime = _RTC_TimeStringToSTime (TimeStringInit);
+ 
+ 
  // 4.1.2 -> RTC domain access
   /*
 RTC domain access

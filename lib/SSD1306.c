@@ -47,6 +47,8 @@ static unsigned char _DispDirty [4] = { 0 };
 // don't attempt to use characters that are not in the map
 // should be OK to shove this in flash
 // on the ST devices, marking this as static const puts it in FLASH, or so I read
+// confirmed by MAP file:
+// 0800435c-0800453b  _CharMap                          480   1  Cnst  RO  SSD1306.o
 static const unsigned char _CharMap [96 * 5] =
 {
   // special characters

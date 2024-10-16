@@ -7,7 +7,8 @@
 // Created September 2024, initial build
 //
 // Version 1.0
-// 
+// Version 1.1 -> Changed to use time string instead of structure to set
+//  RTC time on cold boot
 ///////////////////////////////////////////////////////////////////////
 
 typedef enum
@@ -35,7 +36,12 @@ typedef struct
   unsigned int _RTC_Time_SSR :16; // sub seconds (RAW) 
 } _RTC_STime;
 
-_RTC_INIT_RESULT _RTC_Init (_RTC_STime settime);
+// cold boot will use string in following format to init the RTC
+//  in warm boot, this string will not be used, but *must* be present
+// Format: Fri Oct 11 08:03:00 2024
+_RTC_INIT_RESULT _RTC_Init (char * TimeStringInit);
+
+// get the current time as a STime structure
 _RTC_STime _RTC_Read (void);
 
 long _RTC_STimeHash (_RTC_STime t);

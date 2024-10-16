@@ -135,3 +135,36 @@ int _RNG_GetRndRange (int iLow, int iHigh)
   double dVal = _RNG_GetRNDD();  
   return (int)((iHigh - iLow) * dVal + iLow);
 }
+
+//void ShowRandomStats (void)
+//{
+//  // random number stuff
+//  int const numruns = 50000;
+  
+//  {
+//    char buff [80] = {0};
+//    (void)sprintf (buff, "RND Numbers, two die stats (2 - 12) [%d] rolls", numruns);
+//    _USART2_TxStringXY(1, 12, buff);  
+//  }
+
+//  int stats [11] = {0};
+//  for (int i = 0; i < numruns; ++i)
+//  {
+//    int rnd1 = _RNG_GetRndRange(1, 7);
+//    int rnd2 = _RNG_GetRndRange(1, 7);
+//    stats[rnd1+rnd2-2]++;
+
+//    if (i % 1000 == 0)
+//    {
+//      char buff [50] = {0};
+//      (void)sprintf (buff, "Processing roll [%7.0d]   ", i);
+//      _USART2_TxStringXY(1, 13, buff);
+//    }
+//  }
+//  for (int i = 0; i < 11; ++i)
+//  {
+//    char buff[50] = {0};
+//    (void)sprintf (buff, "Outcome %2.0d : %5.0d [%5.2f%%]", i+2, stats[i], 100 * stats[i] / (float)numruns);
+//    _USART2_TxStringXY (1, 13 + i, buff);
+//  }
+//}
