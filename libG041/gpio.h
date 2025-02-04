@@ -10,7 +10,8 @@
 ///////////////////////////////////////////////////////////////////////
 
 // should work on other variants
-#include "stm32g041xx.h"
+//#include "stm32g041xx.h"
+#include "stm32g031xx.h"
 
 // based on the following for the GPIO port structure
 //typedef struct

@@ -21,6 +21,9 @@
 
 #include "rtc.h"
 
+// local helper prototypes
+void _RTC_SetTime (_RTC_STime settime);
+
 // local helper methods
 // Format: "Fri Oct 11 08:03:00 2024"
 _RTC_STime _RTC_TimeStringToSTime (char * tbuff)
@@ -117,11 +120,10 @@ _RTC_STime _RTC_TimeStringToSTime (char * tbuff)
 // cold boot will use string in following format to init the RTC
 //  in warm boot, this string will not be used, but *must* be present
 // Format: Fri Oct 11 08:03:00 2024
-_RTC_INIT_RESULT _RTC_Init (char * TimeStringInit)
+_RTC_INIT_RESULT _RTC_Init (char * TimeStringInit, _RTC_TIME_RESET_OPTION timeresetoption)
 {
   // convert the time string into a _RTC_STime instance
   _RTC_STime settime = _RTC_TimeStringToSTime (TimeStringInit);
- 
  
  // 4.1.2 -> RTC domain access
   /*
@@ -159,20 +161,22 @@ RTC domain.
   // check and see if the LSE is already running
   //  if the calendar registers are already set
   //  if so, this is warm reset, and there is no need to do an RTC init
+  //  unless the option is set to do so
   if (RCC->BDCR & RCC_BDCR_LSERDY)
   {
     if (RCC->BDCR & RCC_BDCR_RTCEN_Msk)
     {
       // LSE is running, and the RTC is already enabled
-      // a warm reset?
-     // printf ("\r\n*** detected warm reset***");
+      // a warm reset?     
+
+      // set clock if open set // this does not appear to work?
+      if (timeresetoption == _RTC_FORCE_TIME_RESET)
+        _RTC_SetTime (settime);
       return _RTC_INIT_WARM_RESET;
     }
   }
 
   // this should be a RTC domain reset situation (cold reset)
-  //printf ("\r\n*** detected cold reset***");
-
   // turn on LSE, wait to become stable  
   RCC->BDCR |= RCC_BDCR_LSEON;
   while (!(RCC->BDCR & RCC_BDCR_LSERDY))
@@ -197,57 +201,8 @@ To read the calendar after initialization, the software must first check that th
 in the RTC_ICSR register.
 */
 
-/*
-1. Set INIT bit to 1 in the RTC_ICSR register to enter initialization mode. In this mode, the
-calendar counter is stopped and its value can be updated.
-2. Poll INITF bit of in the RTC_ICSR register. The initialization phase mode is entered
-when INITF is set to 1. It takes around 2 RTCCLK clock cycles (due to clock
-synchronization).
-3. To generate a 1 Hz clock for the calendar counter, program both the prescaler factors
-in RTC_PRER register.
-4. Load the initial time and date values in the shadow registers (RTC_TR and RTC_DR),
-and configure the time format (12 or 24 hours) through the FMT bit in the RTC_CR
-register.
-5. Exit the initialization mode by clearing the INIT bit. The actual calendar counter value is
-then automatically loaded and the counting restarts after 4 RTCCLK clock cycles.
-*/
-
-  // unlock write protection on the RTC registers
-  RTC->WPR = 0xCA;
-  RTC->WPR = 0x53;
-
-  // start init mode
-  RTC->ICSR |= RTC_ICSR_INIT_Msk;
-
-  // wait for device to report init ready
-  while (!(RTC->ICSR & RTC_ICSR_INITF_Msk))
-  {;;;}
-
-  // program 1Hz clock prescaler values (actually the defaults)
-  RTC->PRER = 0x007F00FF; // 128 for PREDIV_A, and 256 for PREDIV_B (32768 / 32768 = 1Hz)
-
-  RTC->TR =
-    (settime._RTC_Time_SU) |
-    (settime._RTC_Time_ST << RTC_TR_ST_Pos) |
-    (settime._RTC_Time_MNU << RTC_TR_MNU_Pos) |
-    (settime._RTC_Time_MNT << RTC_TR_MNT_Pos) |
-    (settime._RTC_Time_HU << RTC_TR_HU_Pos) |
-    (settime._RTC_Time_HT << RTC_TR_HT_Pos) |
-    (settime._RTC_Time_PM << RTC_TR_PM_Pos);
-  
-  RTC->DR = 
-    (settime._RTC_Time_DU) |
-    (settime._RTC_Time_DT << RTC_DR_DT_Pos) |
-    (settime._RTC_Time_MU << RTC_DR_MU_Pos) |
-    (settime._RTC_Time_MT << RTC_DR_MT_Pos) |
-    (settime._RTC_Time_WDU << RTC_DR_WDU_Pos) |
-    (settime._RTC_Time_YU << RTC_DR_YU_Pos) |
-    (settime._RTC_Time_YT << RTC_DR_YT_Pos);
-    
-  RTC->CR &= ~RTC_CR_FMT_Msk;                   // default, but ensure 24-hour time format
-
-  // exit init mode
-  RTC->ICSR &= ~RTC_ICSR_INIT_Msk; 
+  // program the clock, it's a cold boot
+  _RTC_SetTime (settime);
 
   return _RTC_INIT_COLD_RESET;
 }
@@ -311,4 +266,59 @@ long _RTC_STimeHash (_RTC_STime t)
 long _RTC_STimeHashDiff (_RTC_STime A, _RTC_STime B)
 {
   return _RTC_STimeHash (A) - _RTC_STimeHash(B);
+}
+
+void _RTC_SetTime (_RTC_STime settime)
+{
+/*
+1. Set INIT bit to 1 in the RTC_ICSR register to enter initialization mode. In this mode, the
+calendar counter is stopped and its value can be updated.
+2. Poll INITF bit of in the RTC_ICSR register. The initialization phase mode is entered
+when INITF is set to 1. It takes around 2 RTCCLK clock cycles (due to clock
+synchronization).
+3. To generate a 1 Hz clock for the calendar counter, program both the prescaler factors
+in RTC_PRER register.
+4. Load the initial time and date values in the shadow registers (RTC_TR and RTC_DR),
+and configure the time format (12 or 24 hours) through the FMT bit in the RTC_CR
+register.
+5. Exit the initialization mode by clearing the INIT bit. The actual calendar counter value is
+then automatically loaded and the counting restarts after 4 RTCCLK clock cycles.
+*/
+
+  // unlock write protection on the RTC registers
+  RTC->WPR = 0xCA;
+  RTC->WPR = 0x53;
+
+  // start init mode
+  RTC->ICSR |= RTC_ICSR_INIT_Msk;
+
+  // wait for device to report init ready
+  while (!(RTC->ICSR & RTC_ICSR_INITF_Msk))
+  {;;;}
+
+  // program 1Hz clock prescaler values (actually the defaults)
+  RTC->PRER = 0x007F00FF; // 128 for PREDIV_A, and 256 for PREDIV_B (32768 / 32768 = 1Hz)
+
+  RTC->TR =
+    (settime._RTC_Time_SU) |
+    (settime._RTC_Time_ST << RTC_TR_ST_Pos) |
+    (settime._RTC_Time_MNU << RTC_TR_MNU_Pos) |
+    (settime._RTC_Time_MNT << RTC_TR_MNT_Pos) |
+    (settime._RTC_Time_HU << RTC_TR_HU_Pos) |
+    (settime._RTC_Time_HT << RTC_TR_HT_Pos) |
+    (settime._RTC_Time_PM << RTC_TR_PM_Pos);
+  
+  RTC->DR = 
+    (settime._RTC_Time_DU) |
+    (settime._RTC_Time_DT << RTC_DR_DT_Pos) |
+    (settime._RTC_Time_MU << RTC_DR_MU_Pos) |
+    (settime._RTC_Time_MT << RTC_DR_MT_Pos) |
+    (settime._RTC_Time_WDU << RTC_DR_WDU_Pos) |
+    (settime._RTC_Time_YU << RTC_DR_YU_Pos) |
+    (settime._RTC_Time_YT << RTC_DR_YT_Pos);
+    
+  RTC->CR &= ~RTC_CR_FMT_Msk;                   // default, but ensure 24-hour time format
+
+  // exit init mode
+  RTC->ICSR &= ~RTC_ICSR_INIT_Msk; 
 }

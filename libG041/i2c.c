@@ -14,20 +14,21 @@
 #include <stdlib.h>
 
 // should operate on other similar variants
-#include "stm32g041xx.h"
+//#include "stm32g041xx.h"
+#include "stm32g031xx.h"
 
 #include "i2c.h"
 
 int _I2C1_Init (void)
 {
-  // turn off, could be second run of init sequence
-  I2C1->CR1 &= ~I2C_CR1_PE_Msk;
-
   // run the clock for port B, or the pins won't work
   RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
   
   // dev
   RCC->APBENR1 |= RCC_APBENR1_I2C1EN; // turn on peripheral clock for I2C1 (5.4.15)
+  
+  // turn off, could be second run of init sequence
+  I2C1->CR1 &= ~I2C_CR1_PE_Msk;
 
   // configure pins of i2c1 as alternate function (PB6 -> SCL), (PB7 SDA)
   GPIOB->MODER &= ~GPIO_MODER_MODE6_Msk;

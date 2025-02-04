@@ -9,14 +9,17 @@
 // 
 ///////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>
-
-#include <stdlib.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 
 // should work on other variants
-#include "stm32g041xx.h"
-
+//#include "stm32g041xx.h"
 #include "gpio.h"
+
+// quick macros included in header
+//#define _GPIO_PinToggle(p, num) ((p)->ODR ^= (1u << (num)))
+//#define _GPIO_PinSet(p, num) ((p)->BSRR |= (1u << (num)))
+//#define _GPIO_PinClear(p, num) ((p)->BSRR |= (0x10000u << (num)))
 
 // relevant registers made available from the derivative file:
 //#define GPIO_MODER_MODE5_Pos           (10U)
@@ -62,3 +65,4 @@ int _GPIO_GetPinOState (GPIO_TypeDef * pPort, int PinNumber)
 
   return (pPort->ODR & (1u << PinNumber));
 }
+

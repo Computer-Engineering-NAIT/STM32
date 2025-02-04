@@ -17,6 +17,12 @@ typedef enum
   _RTC_INIT_COLD_RESET
 } _RTC_INIT_RESULT;
 
+typedef enum
+{
+  _RTC_NO_FORCE_TIME_RESET,
+  _RTC_FORCE_TIME_RESET
+} _RTC_TIME_RESET_OPTION;
+
 typedef struct
 {
   unsigned int _RTC_Time_YT  : 4; // Year Tens (BCD)
@@ -39,10 +45,13 @@ typedef struct
 // cold boot will use string in following format to init the RTC
 //  in warm boot, this string will not be used, but *must* be present
 // Format: Fri Oct 11 08:03:00 2024
-_RTC_INIT_RESULT _RTC_Init (char * TimeStringInit);
+_RTC_INIT_RESULT _RTC_Init (char * TimeStringInit, _RTC_TIME_RESET_OPTION timeresetoption);
 
 // get the current time as a STime structure
 _RTC_STime _RTC_Read (void);
 
 long _RTC_STimeHash (_RTC_STime t);
 long _RTC_STimeHashDiff (_RTC_STime A, _RTC_STime B);
+
+// hidden helper
+//void _RTC_SetTime (_RTC_STime settime);

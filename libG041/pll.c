@@ -13,7 +13,8 @@
 #include <stdlib.h>
 
 // should function with stm32g031xx.h as well
-#include "stm32g041xx.h"
+//#include "stm32g041xx.h"
+#include "stm32g031xx.h"
 
 #include "pll.h"
 

@@ -13,7 +13,8 @@
 #include <stdlib.h>
 
 // should work on other variants
-#include "stm32g041xx.h"
+//#include "stm32g041xx.h"
+#include "stm32g031xx.h"
 
 #include "usart.h"
 
