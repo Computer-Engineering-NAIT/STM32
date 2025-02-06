@@ -7,7 +7,9 @@
 // 
 // Version 1.0 - Initial Build
 // Version 1.1 - Fix for Read function - corrected order of Start/Autoend
-//
+// Version 1.2 - Added 'unstick' code in init to free the bus from an
+//               interrupted transaction (device could still be producing
+//               data, this clocks out pulses to free the transaction)
 ////////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
@@ -29,6 +31,40 @@ int _I2C1_Init (void)
   
   // turn off, could be second run of init sequence
   I2C1->CR1 &= ~I2C_CR1_PE_Msk;
+
+  // execute unstick clocking for devices that were interrupted while clocking out data
+  // this should include clocking out enough pulses to transmit a byte with 
+  // the data line idle? to form a nack condition so the device stops transmitting
+
+  // TODO: if both lines are idle, this could probably be skipped...
+
+  // make SCL float high
+  GPIOB->BSRR |= (1u << 6);
+
+  // GPIO up the pins to be non-alternate function (GPIO)
+  // PB6 should be output
+  // PB7 should be input (should idle high)
+  GPIOB->MODER &= ~GPIO_MODER_MODE6_Msk;
+  GPIOB->MODER |= (0x01ul << GPIO_MODER_MODE6_Pos); //01 - gpo
+  GPIOB->MODER &= ~GPIO_MODER_MODE7_Msk;            //00 - input  
+
+  // now clock out 12 slow pulses to end the clocking operation
+  for (int i = 0; i < 12; ++i)
+  {
+    // go low
+    GPIOB->BSRR |= (0x10000u << 6);
+
+    for (int k = 0; k < 1000; ++k) // want 10us pulses, measured @64MHz, this is ~ 280us
+    {;;;}
+
+    // go high
+    GPIOB->BSRR |= (1u << 6);
+
+    for (int k = 0; k < 1000; ++k)
+    {;;;}
+  }
+
+  // now, back to our usual I2C init...
 
   // configure pins of i2c1 as alternate function (PB6 -> SCL), (PB7 SDA)
   GPIOB->MODER &= ~GPIO_MODER_MODE6_Msk;
