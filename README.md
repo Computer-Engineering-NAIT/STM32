@@ -7,3 +7,5 @@ This repo is a work in progress, and the code within is provided 'as is' - use a
 These libraries are under active maintenance, and may change without notice.
 
 OCT 09 2024 - Major fix to I2C Library, added VEML7700 library
+
+FEB 07 2025 - Updates to many libraries to create demos. I2C lib updated to include 'unstick' code for interrupted bus.
