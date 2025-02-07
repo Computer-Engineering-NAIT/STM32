@@ -9,8 +9,7 @@
 // 
 ///////////////////////////////////////////////////////////////////////
 
-// should work on other variants
-#include "stm32g041xx.h"
+#include <stdint.h>
 
 void _ADC_Init (void);
 uint16_t _ADC_Sample (int chan);

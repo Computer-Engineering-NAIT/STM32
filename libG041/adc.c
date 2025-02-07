@@ -10,11 +10,13 @@
 ///////////////////////////////////////////////////////////////////////
 
 // should work on other variants
-#include "stm32g041xx.h"
+//#include "stm32g041xx.h"
+#include "stm32g031xx.h"
 
 #include "adc.h"
 
 // this init only turns on channel 16 (A10/A12 on the STM32G041F8P6 chip)
+
 // expect the following code to provoke an actual reading:
 // show A/D value from channel 16
 //{
@@ -25,15 +27,15 @@
 //  ADC1->DR <<< contains sample
 //}
 
-// pin configuration (should be default)
+// pin configuration (input should be default)
 // using pin A10/A12 as channel 16 A/D
-//_GPIO_SetPinMode (GPIOA, 10, _GPIO_PinMode_Analog); // ADC_IN16
+//_GPIO_SetPinMode (GPIOA, 10, _GPIO_PinMode_Analog); // ADC_IN16 G041
 
 // only testing, brings up channel 16, manual sampling
 void _ADC_Init (void)
 {
   //////////////////////////////////////////////////////////////////////////////////////////
-  // A/D testing -> A10/A12 as A/D
+  // A/D testing -> A10/A12 as A/D on the G041
   
   // 5.2.11
   //The ADC clock is derived from the system clock, or from the PLLPCLK output. It can reach
