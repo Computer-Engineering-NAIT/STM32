@@ -24,7 +24,7 @@ DEMOS:
 
 `test_g031_i2c_adxl343` -> demo of basic ADXL343 accelerometer use (no device interrupts).
 
-`test_g031_i2c_adxl343_interrupts` -> demo of ADXL343 acceleromer using device activity interrupt line, and STM32 GPIO EXTI interrupts for activity detection.
+`test_g031_i2c_adxl343_interrupts` -> demo of ADXL343 accelerometer using device activity interrupt line, and STM32 GPIO EXTI interrupts for activity detection.
 
 `test_g031_timer_interrupt` -> demo of TIM2 overflow interrupt to generate a 100ms periodic interrupt for program flow control.
 
