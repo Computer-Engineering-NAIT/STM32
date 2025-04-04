@@ -64,13 +64,13 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="32" y="92" useTextEdit="1" folds0="53" path="main.c" left="0" selected="1" top="80" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="4" y="180" useTextEdit="1" folds0="53" path="main.c" left="0" selected="1" top="177" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="24" y="21" useTextEdit="1" path="../libG041/gpio.c" left="0" top="4" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="21" y="35" useTextEdit="1" path="../libG041/gpio.h" left="0" top="21" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="385" useTextEdit="1" path="../test_g041/main.c" left="0" top="385" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="2" y="83" useTextEdit="1" path="STM32G0xx/Device/Include/stm32g031xx.h" left="0" top="64" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" path="../lib/ADXL343.c" left="0" top="91" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="21" y="35" useTextEdit="1" path="../libG041/gpio.h" left="0" top="11" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="14" y="81" useTextEdit="1" path="STM32G0xx/Device/Include/stm32g031xx.h" left="0" top="64" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" path="../lib/ADXL343.c" left="0" top="86" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="50" useTextEdit="1" path="../libG041/usart.c" left="0" top="32" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="38" y="205" useTextEdit="1" path="STM32G0xx/Source/stm32g031xx_Vectors.s" left="0" top="183" codecName="Default"/>
  </Files>
  <EMStudioWindow activeProject="g031_test" fileDialogDefaultFilter="*.c" autoConnectTarget="ST-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/GitHub/STM32_Projects/test_g041" debugSearchPath="" autoConnectCapabilities="3455"/>
 </session>
